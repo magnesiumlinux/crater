@@ -1,0 +1,10 @@
+FS=usr
+PKG=mpfr
+VER=3.1.6
+SUFFIX=tar.bz2
+
+# used primarily/solely for GCC build, but has path restrictions?
+
+MIRROR="https://www.mpfr.org/$PKG-$VER/"
+
+DEPS="usr/gmp"

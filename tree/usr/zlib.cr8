@@ -1,0 +1,8 @@
+FS=usr
+PKG=zlib
+VER=1.2.11
+
+# zlib must be built in the source tree 
+SINGLE_TREE=true
+
+MIRROR="https://www.zlib.net"

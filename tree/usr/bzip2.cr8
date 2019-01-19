@@ -1,0 +1,18 @@
+FS=usr
+PKG=bzip2
+VER=1.0.6
+
+MIRROR=http://bzip.org/$VER
+
+cr8_verify () {
+	cr8_verify_md5 "00b516f4704d4a7cb50a1d97e6e8e15b"
+}
+
+cr8_configure () {
+	return 0
+}
+
+cr8_install () {
+	make install PREFIX=$MASTERS/$FS
+}
+

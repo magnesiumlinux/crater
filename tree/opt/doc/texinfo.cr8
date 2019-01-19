@@ -1,0 +1,6 @@
+FS=opt/doc
+PKG=texinfo
+VER=6.5
+SIG_SUFFIX=sig
+
+MIRROR="https://ftp.gnu.org/gnu/$PKG"

@@ -1,0 +1,13 @@
+FS=opt/net
+PKG=openssh
+VER=7.6p1
+
+SRC=$PKG-$VER.tar.gz
+SIG=$PKG-$VER.tar.gz.asc
+DIR=$PKG-$VER
+ 
+MIRROR="https://ftp3.usa.openbsd.org/pub/OpenBSD/OpenSSH/portable"
+
+SRC_URL=$MIRROR/$SRC
+SIG_URL=$MIRROR/$SIG
+

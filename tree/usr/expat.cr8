@@ -1,0 +1,6 @@
+FS=usr
+PKG=expat
+VER=2.2.6
+SUFFIX=tar.bz2
+
+MIRROR="https://github.com/libexpat/libexpat/releases/download/R_2_2_6"

@@ -1,0 +1,6 @@
+FS=usr
+PKG=libevent
+VER=2.0.22-stable
+
+MIRROR="https://github.com/libevent/libevent/releases/download/release-$VER"
+

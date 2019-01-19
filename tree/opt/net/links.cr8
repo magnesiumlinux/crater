@@ -1,0 +1,10 @@
+FS=opt/net
+PKG=links
+VER=2.14
+VERIFY=false
+
+MIRROR="http://links.twibright.com/download"
+
+CONFIGURE_OPTS="--without-lzma"
+
+

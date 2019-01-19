@@ -1,0 +1,15 @@
+FS=usr
+PKG=bash
+VER=4.4.18
+SIG_SUFFIX=sig
+
+MIRROR=https://ftp.gnu.org/gnu/bash
+
+DEPS="usr/readline usr/ncurses"
+# XXX --with-installed-readline option is b0rken?
+CONFIGURE_OPTS="--enable-alias --enable-brace-expansion \
+    --enable-help-builtin --enable-dparen-arithmetic \
+    --enable-directory-stack --enable-history --enable-job-control \
+    --enable-process-substitution --disable-nls\
+    --with-curses --enable-readline --without-bash-malloc"
+CONFIGURE_VARS="LIBS=-lncurses"

@@ -1,0 +1,6 @@
+FS=usr
+PKG=nano
+VER=3.2
+SUFFIX=tar.xz
+
+MIRROR="https://www.nano-editor.org/dist/v3"

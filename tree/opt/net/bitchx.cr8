@@ -1,0 +1,9 @@
+FS=opt/net
+PKG=bitchx
+VER=1.2.1
+
+MIRROR=http://www.bitchx.com/download
+
+cr8_verify () {
+	cr8_verify_md5 "4da13a2dcfa17847168e50e62be4f67a"
+}

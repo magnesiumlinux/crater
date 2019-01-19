@@ -1,0 +1,5 @@
+FS='usr'
+PKG='musl'
+VER='1.1.18'
+
+MIRROR="http://www.musl-libc.org/releases"

@@ -1,0 +1,8 @@
+FS=usr
+PKG=sqlite
+VER=3.26
+SRC=sqlite-autoconf-3260000.tar.gz
+
+MIRROR=https://www.sqlite.org/2018
+
+VERIFY=false

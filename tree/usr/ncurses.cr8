@@ -1,0 +1,7 @@
+FS=usr
+PKG=ncurses
+VER=6.1
+SIG_SUFFIX=sig
+
+MIRROR="ftp://ftp.gnu.org/gnu/ncurses"
+CONFIGURE_OPTS="--with-shared"

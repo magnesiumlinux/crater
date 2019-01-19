@@ -1,0 +1,7 @@
+FS=usr
+PKG=mpc
+VER=1.1.0
+SIG_SUFFIX=sig
+DEPS="usr/gmp usr/mpfr"
+
+MIRROR="https://ftp.gnu.org/gnu/$PKG"

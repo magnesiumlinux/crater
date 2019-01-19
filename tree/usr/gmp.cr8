@@ -1,0 +1,8 @@
+FS=usr
+PKG=gmp
+VER=6.1.2
+SUFFIX="tar.bz2"
+SIG_SUFFIX="sig"
+
+MIRROR="https://gmplib.org/download/gmp"
+

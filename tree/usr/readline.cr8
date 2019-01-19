@@ -1,0 +1,7 @@
+FS=usr
+PKG=readline
+VER=6.3
+SIG_SUFFIX=sig
+
+MIRROR="ftp://ftp.gnu.org/gnu/readline"
+CONFIGURE_OPTS="--with-curses"

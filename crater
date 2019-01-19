@@ -1,0 +1,357 @@
+#!/bin/sh
+# crater 
+# a package management script
+set -e 
+set -u 
+#set -x
+
+##
+## 
+
+ARCH=i686-pc-linux-musl
+
+TARBALLS=/build/tarballs 
+TREE=/build/tree 
+MASTERS=/build/masters 
+SCRATCH=/build/tmp
+LOGS=/build/log
+
+FETCH=false
+PATCH=true
+VERIFY=true 
+BUILD=true 
+INSTALL=true 
+CLEANUP=true 
+LOG_FILE=""
+LOG_LEVEL=1
+LIVE_MOUNTS=""
+PACKAGES=""
+
+##
+##
+
+work=""
+umount=""
+
+
+msg () {
+    # print messages if they're at or below the current log level
+    # possible values: 0, 1, 2
+    local level=$1
+    shift
+    if [ $level -le $LOG_LEVEL ] ; then
+        echo $@ >&2
+    fi
+}
+
+fail () {
+    msg 0 $@
+    test -n "$LOG_FILE" && msg 0 "See $LOG_FILE for more information"
+	exit 1
+}
+
+cleanup () {
+    # working files and "live" mounts
+	cd /
+	if [ -n "$work" ]; then
+		$CLEANUP && rm -rf $work || msg 1 "Skipping cleanup of $work"
+	fi
+
+	for mnt in $umount; do
+		umount $mnt
+	done
+    return 0
+}
+
+trap cleanup EXIT INT QUIT
+
+help() {
+    msg 0 "Usage: $0 [ OPTS ] descriptor"
+	msg 0 " -f|--fetch"
+   	msg 0 " -F|--no-fetch"
+	msg 0 " -v|--verify"
+   	msg 0 " -V|--no-verify"
+   	msg 0 " -p|--patch"
+   	msg 0 " -P|--no-patch"
+   	msg 0 " -b|--build"
+   	msg 0 " -B|--no-build"
+   	msg 0 " -i|--install"
+   	msg 0 " -I|--no-install"
+   	msg 0 " -c|--cleanup"
+   	msg 0 " -C|--no-cleanup"
+    msg 0 " -1|--single-tree"
+    msg 0 " -l|--live FS"
+}
+
+##
+##
+
+cr8_fetch () {
+    local tar=$1
+    if $FETCH || [ ! -e $tar ]; then
+        test -n "$MIRROR" || fail "No tarball and no mirror for this cr8"
+        msg 1 "Fetching $tar from $SRC_URL"
+        curl -L -o $tar $SRC_URL
+    else
+        msg 1 "Found $tar in $TARBALLS" 
+    fi
+}
+
+cr8_fetch_sig () {
+    local sig=$TARBALLS/$SIG
+	if $FETCH || [ ! -e $sig ]; then
+        msg 1 "Fetching $sig from $SIG_URL"
+		curl -L -o $TARBALLS/$SIG $SIG_URL 
+	fi
+}
+
+cr8_verify_md5 () {
+    # XXX should md5sum on stdin for 
+	local expect=$1
+	local filesum=$(md5sum $TARBALLS/$SRC | awk '{print $1}')
+	test "$expect" = "$filesum"
+}
+
+cr8_verify_gpg () {
+    # run stdin through gpg signature verification
+    cr8_fetch_sig
+	if gpg --verify $TARBALLS/$SIG - >> $LOG_FILE; then
+        msg 1 "GPG signature verified"
+    else
+        fail "GPG signature failed"
+    fi
+
+}
+
+cr8_verify () {
+    cr8_verify_gpg < $TARBALLS/$SRC
+}
+
+cr8_unpack_tar () {
+    local tar=$1
+    local work=$2
+    msg 1 "unpacking $tar into $work"
+    tar xf $tar -C $work
+}
+
+cr8_unpack () {
+    cr8_unpack_tar $1 $2
+}
+
+cr8_patch () {
+	return 0
+}
+
+cr8_configure_autoconf () {
+    cd $build
+    msg 1 "Configuring $PKG"
+    test -n "${CONFIGURE_VARS-}" && export $CONFIGURE_VARS || true
+	$src/configure ${CONFIGURE_OPTS-} --host=$ARCH --build=$ARCH --prefix=/$FS
+}
+
+cr8_configure () {
+    cr8_configure_autoconf
+}
+
+cr8_build_make () {
+    make $MAKE_VARS
+}
+
+cr8_build () {
+    msg 1 "Building $PKG"
+    cr8_build_make 
+}
+
+cr8_install () {
+    msg 1 "Installing $PKG into $FS"
+	make install DESTDIR=$MASTERS $MAKE_VARS
+}
+
+##
+##
+
+reset_defaults () {
+    SUFFIX=""
+    SRC=""
+    SRC_URL=""
+
+    SIG_SUFFIX=""
+    SIG=""
+    SIG_URL=""
+
+    SINGLE_TREE=false
+
+    PATH=/opt/devel/bin:/bin:/sbin:/usr/bin:/usr/sbin:/opt/net/bin
+    CFLAGS=""
+    LD_LIBRARY_PATH="/opt/devel/lib"
+    PKG_CONFIG=/usr/bin/pkgconf
+    export CFLAGS LD_LIBRARY_PATH PATH PKG_CONFIG
+}
+
+load_cr8 () {
+    search=$1
+    cr8=$(find $TREE -name $search.cr8 -mindepth 1 -maxdepth 3) 
+    cnt=$(echo $cr8 | wc -w) 
+    case $cnt in
+    0)
+    	fail "No matches for '$search'"
+        ;;
+    1)
+        . $cr8
+	    ;;
+    *)
+        fail "$cnt matching crates: $cr8"
+        ;;
+    esac
+
+    if test -z "$PKG" || test -z "$VER" || test -z "$FS"; then
+        fail "Invalid cr8: $1"
+	fi
+    msg 1 "Found $cr8"
+    LOG_FILE=$(mktemp -p $LOGS -t $PKG.log.XXXXXX)
+    msg 1 "Logging output to $LOG_FILE"
+    echo > $LOG_FILE
+}
+
+apply_defaults () {
+    # apply defaults for unspecified vars
+    SUFFIX=${SUFFIX:-tar.gz}
+    SRC=${SRC:-$PKG-$VER.$SUFFIX}
+    SRC_URL=${SRC_URL:-$MIRROR/$SRC}
+
+    SIG_SUFFIX=${SIG_SUFFIX:-asc}
+    SIG=${SIG:-$SRC.$SIG_SUFFIX}
+    SIG_URL=${SIG_URL:-$MIRROR/$SIG}
+}
+
+
+live_mount () {
+    mnt=$1
+    mkdir -p $mnt
+    mount --bind $MASTERS$mnt $mnt
+	umount="$umount $mnt"
+}
+
+environment () {
+	for mnt in $LIVE_MOUNTS; do
+        live_mount $mnt
+    done
+
+    if $SINGLE_TREE; then
+        build=$src
+    else
+        build="$src/../build"
+        mkdir -p $build
+    fi
+}
+
+install () {
+    reset_defaults
+    load_cr8 $1
+    apply_defaults
+
+    tar=$TARBALLS/$SRC
+
+    cr8_fetch $tar >> $LOG_FILE
+    $VERIFY && cr8_verify >> $LOG_FILE
+
+    work=$(mktemp -d -p $SCRATCH $PKG.XXXXXX) 
+    cr8_unpack $tar $work >> $LOG_FILE
+    cd $work
+
+    src=$(realpath $(ls))
+    test $(echo $src | wc -w) -gt 1 && fail "bad unpack in $(pwd)"   
+
+    $PATCH && cr8_patch >> $LOG_FILE
+
+    if $BUILD; then
+        environment 
+        cr8_configure >> $LOG_FILE
+	    cr8_build >> $LOG_FILE
+    fi
+
+    $BUILD && $INSTALL && cr8_install >> $LOG_FILE
+
+    cleanup
+}
+
+##
+##
+
+while [ $# -gt 0 ]; do 
+    case $1 in
+    -h|--help)
+        help
+	    exit 0
+	    ;;
+    -q|--quieter)
+        LOG_LEVEL=0
+        ;;
+    -Q|--louder)
+        LOG_LEVEL=2
+        ;;
+    -f|--fetch)
+	    FETCH=true
+	    ;;
+	-F|-no-fetch)
+		FETCH=false
+		;;
+	-v|--verify)
+		VERIFY=true
+		;;
+	-V|--no-verify)
+	    VERIFY=false
+		;;
+	-p|--patch)
+		PATCH=true
+		;;
+	-P|--no-patch)
+		PATCH=false
+		;;
+	-b|--build)
+		BUILD=true
+		;;
+	-B|--no-build)
+		BUILD=false
+		;;
+    -i|--install)
+        INSTALL=true
+        ;;
+    -I|--no-install)
+        INSTALL=false
+        ;;
+	-c|--cleanup)
+		CLEANUP=true
+		;;
+	-C|--no-cleanup)
+		CLEANUP=false
+		;;
+    -1|--single-tree)
+        SINGLE_TREE=true
+        ;;
+	-l|--live)
+		fs=$2
+		if ! echo $fs | grep -q '^/'; then
+			fail "--live arg must be absolute path"
+		fi
+		LIVE_MOUNTS="$LIVE_MOUNTS $fs"
+		shift
+        ;;
+    *)
+        PACKAGES="$PACKAGES $1"
+        ;;
+
+	esac; 
+    shift 
+done 
+
+set -- $PACKAGES
+
+if [ $# -eq 0 ]; then
+    fail "which cr8s?"
+fi
+
+while [ $# -gt 0 ]; do
+    install $1
+    shift
+done

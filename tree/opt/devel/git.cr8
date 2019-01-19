@@ -1,0 +1,22 @@
+FS=opt/devel
+PKG=git
+VER=2.20.1
+SIG="$PKG-$VER.tar.sign"
+
+
+MIRROR="https://www.kernel.org/pub/software/scm/git"
+
+SINGLE_TREE=true
+CONFIGURE_OPTS="--with-curl=/opt/net --without-iconv --without-tcltk" 
+MAKE_VARS="NO_GETTEXT='YesPlease'"
+
+cr8_verify () {
+    zcat $TARBALLS/$SRC | cr8_verify_gpg
+}
+
+cr8_configure () {
+    cd $src
+    make configure
+    cr8_configure_autoconf
+}
+

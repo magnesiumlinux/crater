@@ -1,0 +1,11 @@
+FS=usr
+PKG=pkgconf
+VER=0.9.9
+
+MIRROR="https://git.dereferenced.org/pkgconf/pkgconf/archive"
+
+cr8_configure () {
+    cd $build
+    $src/autogen.sh
+    cr8_autoconf_configure
+}

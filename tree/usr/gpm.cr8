@@ -1,0 +1,16 @@
+FS=usr
+PKG=gpm  
+VER=1.20.7
+
+MIRROR="https://www.nico.schottelius.org/software/gpm/archives"
+
+### XXX build failures
+
+cr8_configure () {
+    src=$1
+    build=$2
+    cd $src
+    $src/autogen.sh
+    cd $build 
+    cr8_autoconf_configure $src $build
+}

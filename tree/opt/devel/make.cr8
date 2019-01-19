@@ -1,0 +1,7 @@
+FS=opt/devel
+PKG=make
+VER=4.2
+
+SIG=$PKG-$VER.tar.gz.sig
+
+MIRROR=https://ftp.gnu.org/gnu/make

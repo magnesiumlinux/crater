@@ -1,0 +1,7 @@
+FS=opt/net
+PKG=curl
+VER=7.58.0
+
+MIRROR=https://curl.haxx.se/download
+
+CONFIGURE_OPTS="--with-ca-bundle=/etc/ssl/cert.pem"

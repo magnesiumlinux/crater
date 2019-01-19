@@ -1,0 +1,8 @@
+FS=opt/net
+PKG=mutt
+VER=1.9.4
+
+DEPS="usr/ncurses"
+
+MIRROR=ftp://ftp.mutt.org/pub/mutt
+CONFIGURE_OPTS="--disable-pgp --disable-smime  --enable-smtp --with-homespool=mbox"

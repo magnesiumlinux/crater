@@ -1,0 +1,6 @@
+FS=usr
+PKG=libressl
+VER=2.6.4
+
+MIRROR=https://ftp.openbsd.org/pub/OpenBSD/LibreSSL
+

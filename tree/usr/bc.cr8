@@ -1,0 +1,10 @@
+FS=usr
+PKG=bc
+VER=1.07
+SIG_SUFFIX=sig
+
+MIRROR=http://ftp.gnu.org/gnu/$PKG
+
+CONFIGURE_OPTS="--with-readline"
+CONFIGURE_VARS="LD_LIBRARY_PATH=/opt/devel/lib"
+

@@ -1,0 +1,10 @@
+FS=opt/net
+PKG=nmap
+VER=7.60
+
+MIRROR=https://nmap.org/dist
+
+SRC=$PKG-$VER.tar.bz2
+SIG_URL=$MIRROR/sigs/$SRC.asc
+
+BUILD_DIR="."

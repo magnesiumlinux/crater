@@ -1,0 +1,8 @@
+FS=opt/python
+PKG=python
+VER=3.5.6
+SRC="Python-3.5.6.tgz"
+
+MIRROR="https://www.python.org/ftp/python/$VER"
+CONFIGURE_OPTS="--disable-ipv6"
+CONFIGURE_VARS="LIBS=-lncurses"

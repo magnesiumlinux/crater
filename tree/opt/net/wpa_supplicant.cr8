@@ -1,0 +1,89 @@
+FS=opt/net
+PKG=wpa_supplicant
+VER=2.6
+
+MIRROR="https://w1.fi/releases/"
+
+SINGLE_TREE=true
+
+##
+## wpa_supplicant uses a hand-tuned config
+##
+cr8_configure () {
+    # .config file is already patched
+    echo 
+}
+
+cr8_build () {
+    make -C wpa_supplicant
+}
+
+cr8_install () {
+    make -C wpa_supplicant install DESTDIR=$MASTERS
+}
+
+cr8_patch () {
+
+##
+## write out the configuration file
+##
+
+	cat > wpa_supplicant/.config <<EOF 
+CC=gcc
+LIBDIR=/opt/net/lib
+INCDIR=/opt/net/include
+BINDIR=/opt/net/bin
+
+PKG_CONFIG=pkgconf
+
+EXTRA_CFLAGS+="-I/opt/net/include"
+LDFLAGS+="-L/opt/net/lib"
+
+CONFIG_DRIVER_WEXT=y
+CONFIG_CTRL_IFACE=y
+CONFIG_BACKEND=file
+CONFIG_PEERKEY=y
+CONFIG_DELAYED_MIC_ERROR_REPORT=y
+CONFIG_WPA_CLI_EDIT=y
+CONFIG_NO_STDOUT_DEBUG=y
+CONFIG_TLSV12=y
+CONFIG_AP=y
+CONFIG_P2P=y
+EOF
+
+
+##
+## patch for LibreSSL compatibility
+##
+
+	cat > libressl.patch <<EOF
+--- src/crypto/crypto_openssl.c
++++ src/crypto/crypto_openssl.c
+@@ -611,7 +611,7 @@
+ 
+ void * dh5_init(struct wpabuf **priv, struct wpabuf **publ)
+ {
+-#if OPENSSL_VERSION_NUMBER < 0x10100000L
++#if  OPENSSL_VERSION_NUMBER < 0x10100000L || LIBRESSL_VERSION_NUMBER
+ 	DH *dh;
+ 	struct wpabuf *pubkey = NULL, *privkey = NULL;
+ 	size_t publen, privlen;
+@@ -712,7 +712,7 @@
+ 
+ void * dh5_init_fixed(const struct wpabuf *priv, const struct wpabuf *publ)
+ {
+-#if OPENSSL_VERSION_NUMBER < 0x10100000L
++#if OPENSSL_VERSION_NUMBER < 0x10100000L || LIBRESSL_VERSION_NUMBER
+ 	DH *dh;
+ 
+ 	dh = DH_new();
+EOF
+
+patch -p0 < libressl.patch || return 1
+
+
+##
+## crater expects to be in the build directory when we exit
+##
+
+}
