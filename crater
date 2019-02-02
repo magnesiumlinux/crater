@@ -8,7 +8,8 @@ set -u
 ##
 ## 
 
-ARCH=i686-pc-linux-musl
+ARCH=${ARCH:-i686-pc-linux-musl}
+DEFAULT_PATH="$PATH"
 
 TARBALLS=/build/tarballs 
 TREE=/build/tree 
@@ -154,7 +155,7 @@ cr8_configure () {
 }
 
 cr8_build_make () {
-    make $MAKE_VARS
+    make ${MAKE_VARS-}
 }
 
 cr8_build () {
@@ -164,7 +165,7 @@ cr8_build () {
 
 cr8_install () {
     msg 1 "Installing $PKG into $FS"
-	make install DESTDIR=$MASTERS $MAKE_VARS
+	make install DESTDIR=$MASTERS ${MAKE_VARS-}
 }
 
 ##
@@ -181,7 +182,7 @@ reset_defaults () {
 
     SINGLE_TREE=false
 
-    PATH=/opt/devel/bin:/bin:/sbin:/usr/bin:/usr/sbin:/opt/net/bin
+    PATH="$DEFAULT_PATH"
     CFLAGS=""
     LD_LIBRARY_PATH="/opt/devel/lib"
     PKG_CONFIG=/usr/bin/pkgconf
